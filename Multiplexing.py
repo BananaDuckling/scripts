@@ -1,11 +1,7 @@
 '''
 Creating the commands for the PySimpleGUI
 '''
-import cv2 as cv
-import PySimpleGUI as sg
-import subprocess
-import os
-import time
+
 
 
 
@@ -160,8 +156,12 @@ def runFeed(camera:int,FPS:int=30,capture:bool=False,timeRecord:int=None,timeInt
 
 
 if __name__=="__main__":
-
-
+    import cv2 as cv
+    import PySimpleGUI as sg
+    import subprocess
+    import os 
+    import time
+    import threading 
     cam_props = {'brightness': 128, 'contrast': 128, 'saturation': 180,
              'gain': 0, 'sharpness': 128, 'exposure_auto': 1,
              'exposure_absolute': 150, 'exposure_auto_priority': 0,
@@ -172,4 +172,4 @@ if __name__=="__main__":
     cameraInput=0
     FPS=30 #Frames Per Second
     #liveFeed(cameraInput,FPS)
-    runFeed(camera=2,capture=False,folder='/home/duck/HydraInABox/Color Flow',timeInt=60, timeRecord=60,FPS=FPS)
+    runFeed(camera=2,capture=True,folder='/home/duck/HydraInABox/Color Flow',timeInt=60, timeRecord=60,FPS=FPS)

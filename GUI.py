@@ -16,6 +16,8 @@ def testCamera(cameraInput,FPS): #Checks if the camera is able to be connected t
         sg.popup_error('Camera not connected or detected',title='Connection Error')
     else:
         cap.set(cv.CAP_PROP_FPS,FPS)
+        cap.set(cv.CAP_PROP_FRAME_WIDTH,640)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT,480)
     return cap
 
 def checkParam(values): #Checks if there are any key parameters missing
@@ -133,10 +135,11 @@ while True:
         window.hide()
         while cap.isOpened():
             ret, frame = cap.read()
+            newFrame=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
             if not ret:
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
-            frame = cv.flip(frame, 0)
+            frame = cv.flip(newFrame, 0)
             cv.imshow('Live Feed', frame)
             #window['-ENTER-'].update(data=img)
             if cv.waitKey(1) == ord('q'):
