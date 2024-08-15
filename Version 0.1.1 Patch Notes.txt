@@ -1,0 +1,16 @@
+Patch Notes
+August 14, 2024 
+This is the first official update to the camera program (v.0.1.1). This update is mainly composed of bug fixes.
+
+Bug Fixes:
+	GUI.py 
+	-Fixed an issue where the Live Camera exit button and the Record exit button were different.
+	-Fixed an issue where the camera windows would randomly be different sizes.
+	-Fixed an issue that caused the program to throw an error or crash when clicking either Live or Record after clicking the record button
+Features:
+	GUI.py
+	-Reworked folder creation. Now you can choose a main directory and folder name separately.
+	-Added a pop up warning if a folder of the same name exists. This is to help prevent overwrites of previous collected data.
+	-
+Future Plans:
+-

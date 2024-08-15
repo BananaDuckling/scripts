@@ -16,8 +16,8 @@ def testCamera(cameraInput,FPS): #Checks if the camera is able to be connected t
         sg.popup_error('Camera not connected or detected',title='Connection Error')
     else:
         cap.set(cv.CAP_PROP_FPS,FPS)
-        cap.set(cv.CAP_PROP_FRAME_WIDTH,640)
-        cap.set(cv.CAP_PROP_FRAME_HEIGHT,480)
+        cap.set(cv.CAP_PROP_FRAME_WIDTH,800)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT,600)
     return cap
 
 def checkParam(values): #Checks if there are any key parameters missing
@@ -28,18 +28,24 @@ def checkParam(values): #Checks if there are any key parameters missing
         liveCapture=True
     return liveCapture
 
-def createDirectory(folderName): #Creates a directory if it does not exist
-    print(folderName)
-    if os.path.exists(folderName) == False:
-        print('Making Dir')
-        os.mkdir(folderName) #Creates a folder
-    return folderName
+def createDirectory(mainDir,folder): #Creates a directory if it does not exist
+    print(mainDir)
+    newDir=os.path.join(mainDir,folder)
+    if os.path.exists(newDir) == True:
+        clicked=sg.popup_ok_cancel('WARNING: A Folder with the same name exists. Proceeding will overwrite data in the folder')
+        if clicked =='OK':
+            return newDir
+        else:
+            return
+    print('Making Dir')
+    os.mkdir(newDir) #Creates a folder
+    return newDir
 
 def frameCapture(timeInt,frameNum,folderName,cap): #To capture the frame into a folder
     i=0
     j=0
     temp=os.path.join(folderName,'Run'+str(j))
-    createDirectory(temp)
+    createDirectory(folderName,'Run'+str(j))
     tempDir=os.path.join(temp,'Test Frame')
     print(tempDir+str(i)+'.tiff')
     window.hide()
@@ -48,31 +54,33 @@ def frameCapture(timeInt,frameNum,folderName,cap): #To capture the frame into a 
 
         time2=int(time.time()*1000)
         if (time2-time1) >= timeInt:
+            temp=os.path.join(folderName,'Run'+str(j))
+            createDirectory(folderName,'Run'+str(j))
+            tempDir=os.path.join(temp,'Test Frame')
             testtime=int(time.time()*1000)
             for x in range(0,frameNum):
                 ret, frame = cap.read()
+                frame=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
                 if not ret:
                     sg.popup_error("Can't receive frame (stream end?). Exiting ...",auto_close=True)
                     return
-                frame = cv.flip(frame, 0)
+                #frame = cv.flip(frame, -1)
                 timeThen=int(time.time()*1000)
                 cv.imwrite(tempDir+str(i)+'.jpg',frame)
                 #cv.putText(frame,'Press "v" to Exit',(10,30),cv.FONT_HERSHEY_SIMPLEX,1,(0,0,255))
                 print(int(time.time()*1000)-timeThen)
                 cv.imshow('Recording', frame)
+                cv.resizeWindow('Recording',640,480)
                 i+=1
-                if cv.waitKey(1) == ord('v'):
+                if cv.waitKey(1) == ord('q'):
                     break
 
             time1=int(time.time()*1000)
             print(time1-testtime)
             i=0
             j+=1
-            temp=os.path.join(folderName,'Run'+str(j))
-            createDirectory(temp)
-            tempDir=os.path.join(temp,'Test Frame')
-
-        if cv.waitKey(1)==ord('v'):
+        if cv.waitKey(1)==ord('q'):
+            cap.release()
             break
     cv.destroyWindow('Recording')
     window.UnHide()
@@ -99,7 +107,8 @@ paraFrame= [[sg.Text('Hr:'), sg.Input(s=5,enable_events=True,key='-HRS-'),
           sg.Text('Sec:'),sg.Input(s=5,enable_events=True,key='-SEC-')]]
 
 #Test Folder Button
-folderButton= [sg.Text('Folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLD-'), sg.FolderBrowse(initial_folder=path)]
+folderButton= [[sg.Text('Home Directory'), sg.In(size=(25,1), enable_events=True ,key='-DIR-'), sg.FolderBrowse(initial_folder=path)],
+               sg.Text('Folder Names'),sg.Input(s=20,enable_events=True,key='-FOLD-')]
 
 ### Edit the layout of the GUI ###
 layout= [[sg.Frame('Camera Settings',camFrame)], #Camera Settings
@@ -116,9 +125,14 @@ window=sg.Window('Hydra in a Box',layout,finalize=True)
 while True:
     event, values =window.read()
     
-    ### Folder Name ###
+    ### DIRECTORY NAME ###
+    if event=='-DIR-':
+        print(values['-DIR-'])
+
+    ### FOLDER NAME ####
     if event=='-FOLD-':
-        print(values['-FOLD-'])
+        pass
+
 
     ### Frame Rate Input ###
     if event == '-INPUT-' :
@@ -135,12 +149,13 @@ while True:
         window.hide()
         while cap.isOpened():
             ret, frame = cap.read()
-            newFrame=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
+            frame=cv.cvtColor(frame,cv.COLOR_BGR2GRAY)
             if not ret:
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
-            frame = cv.flip(newFrame, 0)
+            #frame = cv.flip(newFrame, 1)
             cv.imshow('Live Feed', frame)
+            cv.resizeWindow('Live Feed',800,600)
             #window['-ENTER-'].update(data=img)
             if cv.waitKey(1) == ord('q'):
                 cv.destroyWindow('Live Feed')                
@@ -151,8 +166,10 @@ while True:
     ### Record Button ###
     if event == '-CAPTURE-':
         liveCapture=checkParam(values)
-        userDir=createDirectory(values['-FOLD-'])
-        if liveCapture==True: #If all boxes are filled, proceed with live capturing
+        userDir=createDirectory(values['-DIR-'],values['-FOLD-'])
+        if userDir==None:
+            pass
+        elif liveCapture==True: #If all boxes are filled, proceed with live capturing
             cap=testCamera(values['-CAM-'],values['-INPUT-'])
             timeInt=(int(values['-HRS-'])*3600+int(values['-MIN-'])*60+int(values['-SEC-']))*1000
             frameNum=int(values['-RECORDING-'])*int(values['-INPUT-'])
